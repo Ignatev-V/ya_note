@@ -9,6 +9,8 @@ from .models import Note
 class Home(generic.TemplateView):
     """Домашняя страница."""
     template_name = 'notes/home.html'
+    context_object_name = 'notes_feed'
+
 
 
 class NoteSuccess(LoginRequiredMixin, generic.TemplateView):

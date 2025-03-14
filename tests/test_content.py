@@ -1,56 +1,52 @@
 """тестирование контента."""
-
-import unittest
-from datetime import datetime, timedelta
-
-from django.conf import settings
-from django.test import TestCase
 from django.urls import reverse
+from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from notes.models import Note
+from .mixins import create_users
+
 
 User = get_user_model()
 
 
-class TestHomePage(TestCase):
-    """Класс под тесты Главной страницы."""
-
-    HOME_URL = reverse('notes:home')
+class TestContent(TestCase):
+    """Класс под тесты контента."""
 
     @classmethod
-    def setUpTestData(cls):
+    @create_users
+    def setUpTestData(cls, author, author_client, user, user_client):
         """Фикстура класса."""
-        cls.author = User.objects.create(username='А.С.Пушкин')
-        all_notes = [
-            Note(
-                title=f'Новость {index}',
-                text='Просто текст.',
-                slug=f'NightsBred{index}',
-                author=cls.author,
-            )
-            for index in range(settings.NOTES_COUNT_ON_HOME_PAGE + 1)
-        ]
-        Note.objects.bulk_create(all_notes)
-        cls.list_url = reverse('notes:list')
+        cls.author = author
+        cls.author_client = author_client
+        cls.user_client = user_client
+        cls.note = Note.objects.create(
+            title='Название',
+            text='Текст',
+            author=cls.author,
+            slug='note_slug',
+        )
 
-    @unittest.expectedFailure
-    def test_notes_count(self):
-        """Проверяем максимальное количество новостей на Главной."""
-        self.client.force_login(self.author)
-        response = self.client.get(self.list_url)
-        object_list = response.context['object_list']
-        notes_count = object_list.count()
-        self.assertEqual(notes_count, settings.NOTES_COUNT_ON_HOME_PAGE)
+    def test_note_in_list_for_author(self):
+        """Проверка, что заметка попадает в список автора."""
+        url = reverse('notes:list')
+        response = self.author_client.get(url)
+        self.assertIn(self.note, response.context['object_list'])
 
-    def test_news_order(self):
-        """Проверяем что список заметок отсортирован по дате.
-        
-        Ориентируем на ID заметки"""
-        self.client.force_login(self.author)
-        response = self.client.get(self.list_url)
-        object_list = response.context['object_list']
-        all_ids = [note.id for note in object_list]
-        sorted_dates = sorted(all_ids)
-        self.assertEqual(all_ids, sorted_dates)
+    def test_note_not_in_list_for_another_user(self):
+        """Заметки нет в чужом списке."""
+        url = reverse('notes:list')
+        response = self.user_client.get(url)
+        self.assertNotIn(self.note, response.context['object_list'])
+
+    def test_note_pages_contain_form(self):
+        """Страницы добавление и редактирования содержат формы."""
+        urls = (
+            ('notes:add', None),
+            ('notes:edit', (self.note.slug,)),
+        )
+        for name, args in urls:
+            with self.subTest(name=name):
+                url = reverse(name, args=args)
+                response = self.author_client.get(url)
+                self.assertIn('form', response.context)

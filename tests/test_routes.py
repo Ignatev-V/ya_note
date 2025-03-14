@@ -24,7 +24,7 @@ class TestRoutes(TestCase):
                                         slug='NightsNotes',
                                         author=cls.author,
                                         )
-     
+
     def test_pages_availability(self):
         """универсальный тест доступности страницы."""
         urls = (
@@ -37,7 +37,7 @@ class TestRoutes(TestCase):
             ('users:login', None),
             ('users:logout', None),
             ('users:signup', None),
-            
+
         )
         self.client.force_login(self.author)
         for name, args in urls:
@@ -47,8 +47,7 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_availability_for_note_edit_and_delete(self):
-        """проверка доступности редактирования и удаления для автора"""
-
+        """проверка доступности редактирования и удаления для автора."""
         self.client.force_login(self.author)
 
         for name in ('notes:edit', 'notes:delete'):
@@ -75,4 +74,3 @@ class TestRoutes(TestCase):
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
-        

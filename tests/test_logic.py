@@ -1,15 +1,12 @@
 """тестирование логики."""
-import unittest
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from pytils.translit import slugify
-from django.urls import reverse
 
 from notes.models import Note
 from notes.forms import WARNING
 from .utils import BaseTestCase
-# from .mixins import create_users
 
 User = get_user_model()
 
@@ -21,23 +18,6 @@ class TestNotesEdit(BaseTestCase):
     def setUpTestData(cls):
         """Дополнительные фикстуры, специфичные для тестов редактирования."""
         super().setUpTestData()
-
-        cls.author_client = cls.client_class()
-        cls.author_client.force_login(cls.author)
-
-        cls.reader_client = cls.client_class()
-        cls.reader_client.force_login(cls.reader)
-
-        cls.note = Note.objects.create(
-            text=cls.NOTE_TEXT,
-            title='Заголовок заметки',
-            slug='note-slug',
-            author=cls.author,
-        )
-
-        cls.NOTES_EDIT_URL = reverse('notes:edit', args=(cls.note.slug,))
-        cls.NOTES_DETAIL_URL = reverse('notes:detail', args=(cls.note.slug,))
-        cls.NOTES_DELETE_URL = reverse('notes:delete', args=(cls.note.slug,))
 
     def test_authenticated_user_can_create_note(self):
         """Неаноним может писать заметки."""
@@ -64,19 +44,14 @@ class TestNotesEdit(BaseTestCase):
 
     def test_not_unique_slug(self):
         """Проверка уникальности SLUG."""
-        note = Note.objects.create(
-            author=self.author,
-            title='Заголовок заметки',
-            text='Текст заметки',
-            slug='unique-slug')        
         notes_count_before = Note.objects.count()
-        self.form_data['slug'] = note.slug
+        self.form_data['slug'] = self.note.slug
         response = self.author_client.post(
             self.NOTES_ADD_URL,
             data=self.form_data)
         self.assertEqual(Note.objects.count(), notes_count_before)
         self.assertFormError(
-            response, "form", "slug", errors=(note.slug + WARNING)
+            response, "form", "slug", errors=(self.note.slug + WARNING)
         )
 
     def test_empty_slug(self):

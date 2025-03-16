@@ -1,11 +1,8 @@
 """тестирование контента."""
-from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from notes.models import Note
 from notes.forms import NoteForm
 from .utils import BaseTestCase
-
 
 User = get_user_model()
 
@@ -17,23 +14,6 @@ class TestContent(BaseTestCase):
     def setUpTestData(cls):
         """Дополнительные фикстуры, специфичные для тестов редактирования."""
         super().setUpTestData()
-
-        cls.author_client = cls.client_class()
-        cls.author_client.force_login(cls.author)
-
-        cls.reader_client = cls.client_class()
-        cls.reader_client.force_login(cls.reader)
-
-        cls.note = Note.objects.create(
-            text=cls.NOTE_TEXT,
-            title='Заголовок заметки',
-            slug='note-slug',
-            author=cls.author,
-        )
-
-        cls.NOTES_EDIT_URL = reverse('notes:edit', args=(cls.note.slug,))
-        cls.NOTES_DETAIL_URL = reverse('notes:detail', args=(cls.note.slug,))
-        cls.NOTES_DELETE_URL = reverse('notes:delete', args=(cls.note.slug,))
 
     def test_note_in_list_for_author(self):
         """Проверка, что заметка попадает в список автора."""

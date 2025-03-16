@@ -2,9 +2,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 
-from notes.models import Note
 from .utils import BaseTestCase
 
 User = get_user_model()
@@ -17,23 +15,6 @@ class TestRoutes(BaseTestCase):
     def setUpTestData(cls):
         """Дополнительные фикстуры, специфичные для тестов редактирования."""
         super().setUpTestData()
-
-        cls.author_client = cls.client_class()
-        cls.author_client.force_login(cls.author)
-
-        cls.reader_client = cls.client_class()
-        cls.reader_client.force_login(cls.reader)
-
-        cls.note = Note.objects.create(
-            text=cls.NOTE_TEXT,
-            title='Заголовок заметки',
-            slug='note-slug',
-            author=cls.author,
-        )
-
-        cls.NOTES_EDIT_URL = reverse('notes:edit', args=(cls.note.slug,))
-        cls.NOTES_DETAIL_URL = reverse('notes:detail', args=(cls.note.slug,))
-        cls.NOTES_DELETE_URL = reverse('notes:delete', args=(cls.note.slug,))
 
     def test_pages_availability(self):
         """универсальный тест доступности страницы."""

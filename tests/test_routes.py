@@ -1,23 +1,14 @@
 """Здесь будем тестировать маршруты."""
 from http import HTTPStatus
 
-from django.contrib.auth import get_user_model
-
 from .utils import BaseTestCase
-
-User = get_user_model()
 
 
 class TestRoutes(BaseTestCase):
-    """класс для тестов маршрутов."""
-
-    @classmethod
-    def setUpTestData(cls):
-        """Дополнительные фикстуры, специфичные для тестов редактирования."""
-        super().setUpTestData()
+    """Класс для тестов маршрутов."""
 
     def test_pages_availability(self):
-        """универсальный тест доступности страницы."""
+        """Универсальный тест доступности страницы."""
         clients = [
             (self.client, (self.NOTES_HOME_URL, self.LOGIN_URL,
                            self.LOGOUT_URL, self.SIGNUP_URL)),
@@ -33,17 +24,14 @@ class TestRoutes(BaseTestCase):
                     self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_pages_unavailability(self):
-        """универсальный тест недоступности страницы."""
-        clients = [
-            (self.reader_client, (self.NOTES_DETAIL_URL, self.NOTES_EDIT_URL,
-                                  self.NOTES_DELETE_URL)),
-        ]
-        for client, urls in clients:
-            for url in urls:
-                with self.subTest(url=url):
-                    response = client.get(url)
-                    self.assertEqual(response.status_code,
-                                     HTTPStatus.NOT_FOUND)
+        """Универсальный тест недоступности страницы."""
+        urls = (self.NOTES_DETAIL_URL, self.NOTES_EDIT_URL,
+                self.NOTES_DELETE_URL)
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.reader_client.get(url)
+                self.assertEqual(response.status_code,
+                                 HTTPStatus.NOT_FOUND)
 
     def test_redirect_for_anonymous_client(self):
         """Проверка, что анонима отправят регистрироваться."""

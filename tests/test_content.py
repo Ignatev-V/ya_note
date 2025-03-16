@@ -1,19 +1,10 @@
 """тестирование контента."""
-from django.contrib.auth import get_user_model
-
 from notes.forms import NoteForm
 from .utils import BaseTestCase
-
-User = get_user_model()
 
 
 class TestContent(BaseTestCase):
     """Класс под тесты контента."""
-
-    @classmethod
-    def setUpTestData(cls):
-        """Дополнительные фикстуры, специфичные для тестов редактирования."""
-        super().setUpTestData()
 
     def test_note_in_list_for_author(self):
         """Проверка, что заметка попадает в список автора."""

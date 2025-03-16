@@ -23,7 +23,6 @@ class BaseTestCase(TestCase):
             'text': 'Текст',
             'title': 'Название',
             'slug': 'slug_txt',
-            'author': cls.author.pk,
         }
 
         cls.author_client = cls.client_class()

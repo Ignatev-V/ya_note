@@ -1,38 +1,29 @@
 """тестирование логики."""
 from http import HTTPStatus
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user
 from pytils.translit import slugify
 
 from notes.models import Note
 from notes.forms import WARNING
 from .utils import BaseTestCase
 
-User = get_user_model()
-
 
 class TestNotesEdit(BaseTestCase):
     """Класс для тестов логики редактирования заметок."""
 
-    @classmethod
-    def setUpTestData(cls):
-        """Дополнительные фикстуры, специфичные для тестов редактирования."""
-        super().setUpTestData()
-
     def test_authenticated_user_can_create_note(self):
         """Неаноним может писать заметки."""
-        notes_count_before = Note.objects.count()
+        Note.objects.all().delete()
         response = self.author_client.post(self.NOTES_ADD_URL,
                                            data=self.form_data)
         self.assertRedirects(response, self.NOTES_SUCCESS_URL)
-        self.assertEqual(Note.objects.count(), notes_count_before + 1)
-        new_note = Note.objects.latest('id')
+        self.assertEqual(Note.objects.count(), 1)
+        new_note = Note.objects.get()
         self.assertEqual(new_note.title, self.form_data['title'])
         self.assertEqual(new_note.text, self.form_data['text'])
         self.assertEqual(new_note.slug, self.form_data['slug'])
-        self.assertEqual(
-            new_note.author,
-            User.objects.get(id=self.form_data['author']))
+        self.assertEqual(new_note.author, get_user(self.author_client))
 
     def test_anonymous_user_cannot_create_note(self):
         """Аноним не может писать заметки."""
@@ -56,13 +47,13 @@ class TestNotesEdit(BaseTestCase):
 
     def test_empty_slug(self):
         """Пустой слуг недопустим и формируется."""
-        cnt_note_before = Note.objects.count()
+        Note.objects.all().delete()
         self.form_data.pop('slug')
         response = self.author_client.post(self.NOTES_ADD_URL,
                                            data=self.form_data)
-        self.assertEqual(Note.objects.count(), cnt_note_before + 1)
+        self.assertEqual(Note.objects.count(), 1)
         self.assertRedirects(response, self.NOTES_SUCCESS_URL)
-        new_note = Note.objects.latest('id')
+        new_note = Note.objects.get()
         expected_slug = slugify(self.form_data['title'])
         self.assertEqual(new_note.slug, expected_slug)
 
